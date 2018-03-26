@@ -19,9 +19,10 @@ sh manager attach
 ganache-cli
 ```
 
-运行 Web App:
+再开一个终端运行 Web App:
 
 ```
+sh manager attach
 cp payroll
 # 首次需 compile 和 migrate
 truffle compile
