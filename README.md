@@ -1,10 +1,3 @@
-本镜像安装有: 
-
-* truffle
-* ganache-cli
-
-truffle unbox react 之后的代码在 `src/payroll` 下：
-
 ##### 运行容器:
 
 `sh manager.sh run` 容器在后台运行
@@ -19,9 +12,21 @@ truffle unbox react 之后的代码在 `src/payroll` 下：
 
 ##### 运行
 
+启动 `ganache-cli`
+
+```
+sh manager attach
+ganache-cli
+```
+
+运行 Web App:
+
 ```
 cp payroll
-# 首次需 compile
+# 首次需 compile 和 migrate
 truffle compile
+truffle migrate
 npm run start
 ```
+
+http://localhost:3000/

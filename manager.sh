@@ -4,7 +4,7 @@ set -e
 
 prj_dir=$(cd $(dirname $0); pwd -P)
 
-image_version='1.0.1'
+image_version='1.0.2'
 image_name="liaohuqiu/cube-box:$image_version"
 
 env='prod'
@@ -23,11 +23,13 @@ function build_image() {
 }
 
 function run() {
-    link_node_modules "$prj_dir/src"
+    local src_dir_in_host="$prj_dir/src"
+    link_node_modules $src_dir_in_host
     local uid=`id -u`
     local args=$(base_docker_args $env $container_name)
-    args="$args -v $prj_dir/src:/opt/src"
+    args="$args -v $src_dir_in_host:/opt/src"
     args="$args -p 3000:3000"
+    args="$args -p 8545:8545"
     args="$args -w /opt/src"
     local cmd_args='tail -f /dev/null'
     local cmd="docker run -d $args $image_name $cmd_args"
