@@ -2,7 +2,7 @@ const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 const web3 = new Web3(new Web3.providers.HttpProvider('https://ropsten.infura.io/b3F1ygEkCnYDKQqlXBw5'));
 
-const targetAddress = '0xa8c23f2852797a62b8e52334ceee9924376282af';
+const targetAddress = '0xD48a0Ff0C1555cE2E85A0f456AB461E17516d4E6';
 const providerList = [
     {
         address: '0xxxxx',
@@ -94,10 +94,11 @@ function chunkify(a, n, balanced) {
     return out;
 }
 
+// faucet 对单个 IP 有并发访问控制，分割帐号地址，给 request-eth.py 用，在多个服务器上运行。
+// faucet.metamask.io 是目前最好用的领取测试币的网站，请不用滥用。
 console.log(chunkify(addressList, 3, true));
 
 for (var i = 0; i < providerList.length; i++) {
     var item = providerList[i];
     transfer(item['key'], item['address'], targetAddress);
 }
-

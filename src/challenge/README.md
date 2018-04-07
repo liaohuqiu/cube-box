@@ -1,154 +1,324 @@
+### 挑战赛复盘
+
+本次挑战赛的复盘转移到了: https://www.liaohuqiu.net/cn/posts/a-simple-story-of-a-solidity-challenge/
+
 ### 白帽黑客挑战赛 赛制与规则说明
 
 1. 阅读代码，尽可能的破解下面这个智能合约 TimeDelayedVault，本合约的本来目的是一个限制取钱数额和时间的多人共享钱包，每30min只能取钱0.001ETH。但遗憾的是，这段程序代码质量，特别差，而且特么的还没有注释。请阅读代码，寻找可能的程序漏洞。
+
 2. 每组的微信群中，都发布了一个合约地址，这个合约地址中部署的合约的authorizedUsers变量在合约初始化的时候被初始化为了一个包含且仅包含队伍中所有同学ETH地址的数组。
+
 3. 本次比赛一些函数必须要通过GameVerifier的验证才可以调用，gamer数组中存储的是所有本次参赛选手的ETH地址，GameVerifier中的isValidGamer 函数逻辑已经给出，但是addGamer的部分逻辑被隐去。
 合约部署在Ropsten测试网络上。
+
 4. 如果比赛过程中，希望老董将合约彻底重置，会导致 重生次数++，惩罚方式见下面计分公式。
+
 5. 老董可能会在合约中同时注入新的ETH
+
 6. 单组计分方式使用如下公式进行：
     队伍评分 = 通过破解所以得到的所有ETH *（1-第一次成功使用某种破解手段所消耗的时间/比赛总时间）／组内报名账户直接或间接（通过合约调用）在破解过程中消耗的所有ETH（gas和其他）*（0.5）^(重生次数)
+
 7. 在阅读代码之后，请多次反复，认真，不停地阅读上述积分规则，认真阅读代码，不要激动，思考得到最高奖励的最佳策略。
+
 8. 本比赛最大的原则，凡是规则不禁止的，都特么是提倡的！
+
 9. 比赛截止时间：48小时
 
-
-### 规则解说
-
-1. 重生次数，首次破解时间很重要。
-
-2. 成绩和报名账户的收入和成本相关。
-
-3. 规则不限。
-
-4. 48 小时，北京时间 2018 年 4 月 4 号 15:00 到 6 号 15:00。
-
-### 代码解读
-
-* 30 分钟限制：每 30 分钟才可取钱
-
-* 16 小时限制：`selfdestruct()` 在 `lastUpdated` 16 小时才后可攻击，`addToReserve()` 可更新 `lastUpdated`。
-
-  这使得很多操作在比赛期间只能操作 2 次。
-
-* `GameVerifier` 控制权限，`addGamer()` 可添加新地址，需要知道第二个参数的取值规律。
-
-* `TimeDelayedVault` 和 `CommonWalletLibrary`
-
-    * `withdrawFund()` 非常容易构造 `reentry`，麻烦的是要团队配合投票。
-    *  构造函数中 `initializeVault` 是个笔误，无法调用成功 `initilizeVault()`，部署完后，所有合约都是没有 owner 的。
-    *  owner 可调用 `resolve()`，在 `lastUpdated` 后 16 个小时销毁合约，余额会转到 owner 对应的地址。
-
-### 攻防分析
-
-* 最简单的，`reentry` 除去 gas，收入不多。这个越早越好，简单易行，主要考验团队配合。
-
-* `addGamer()` 可添加**非报名地址**，用于各种攻防操作，防追踪。同时可通过 `addToReserve()` 加钱，增加收益。
-
-* 抢占 owner，然后等时间到，`resolve()` 收钱；但任何人都可调用 `addToReserve()` 阻止。
-
-### 分工
-
-我们是 3 期 C 组。参加的同学有: WYF，BJ，LJW，LYN，XCY，和我。BJ 因为要赶之前作业，过程没参与，LYN 同学是后半段参与的。
-
-* WYF 是队长，不过赛期他东京回国，事情也多，没办法实时在线。他应该是组内比较了解智能合约的同学，大策略都是他出的主意。
-
-* LJW 和 XCY 在线时间多，不过 XCY 同学好像是在美西。
-
-* 我飞机晚点 4 号凌晨到北京，有几个应酬，还要陪女朋友不能整天待电脑前面，6 号早 6 点飞杭州，在线时间不也多。
-
-### 本组攻防过程
-
-##### 抢占 owner
-
-4 号早上起来，写了一会工作代码，下午比赛开始之后，简单看了除 reentry 没想到其它办法（新手视野不广），琢磨一个多小时，组里没什么动静，去参加一个饭局。
-
-4 号晚，WYF 在群里说检查合约的 `initilizeVault()` 调用了没，要抢，我喝酒喝得晕乎乎的，没理解。洗澡的时候，突然警醒。和 WYF 同学电话沟通了一下，检查[所有合约](https://ropsten.etherscan.io/address/0x5138da08c878ec23b82b85a86eca47230f96f62b) 发现有部分合约已经被抢占，`CommonWalletLibrary` 也被抢占。
-
-迅速写了 [代码](https://github.com/liaohuqiu/cube-box/blob/master/src/challenge/src/init.js)，把能抢占的都抢占了，组内简单同步，然后睡觉去了。
-
-早上醒来，WYF 同学说给 `CommonWalletLibrary` 续命了，花了 3 个 eth，这个钱要赚回来。上午要出门陪女朋友看电影，结束大概是抢占 owner 之后的 16 小时，写好了 [检查可 `resolve()` 合约的代码](https://github.com/liaohuqiu/cube-box/blob/master/src/challenge/src/check.js) 和 [调用 `resolve()` 的代码](https://github.com/liaohuqiu/cube-box/blob/master/src/challenge/src/kill.js)，然后出门了。
-
-电影不错。
-
-回来之后，留了一个合约没收割（后面发现还漏了一个），其它控制的合约全销毁了，收获大概 20 个 eth，发现大群里有一些动静。
-
-这时候时间过去一半，时间系数 0.5。
-
-监控发现又有组重生，迅速占领。
-
-##### 攻占 GameVerifier
-
-想要扩大战果，靠 `reentry` 和 `resolve()` 是不行的。要破解 `addGamer()` 大量加强，然后 `reentry`。当时我们 `reentry` 还没实现。晚上大家电话会议，确定分工如下：
-
-* LJW 同学实现 `reentry`，并负责调度大家 `addAuthorizedAccount()`
-
-* XCY 和我复杂攻占 `addGamer()`。
-
-WYF 和我用 MEW 调用测试 magic num，发现 1 是不行的，但是看 input data 以及 porosity 反编译出来的都是 1，不解，决定看 opcode。
-
-##### 扩大战果，快速致富
-
-到了晚上 12 点左右，对着黄皮书看 opcode，眼睛都要瞎了，WYF 提出了一个疯狂的想法：
-
-随便构造一个合约，用非报名帐号给这个合约充钱，然后销毁这个合约（跳板合约），把钱转给竞赛的合约（傀儡合约，其它组的和我们自组的），然后销毁傀儡合约。
-
-立刻简单测试，可行。
-
-
 ```
-contract Jumper {
-    address vault;
+pragma solidity ^0.4.17;
+
+contract GamerVerifier {
+    mapping(address => uint256) public gamers;
     address owner;
 
-    function Jumper() payable {
+    function GamerVerifier() {
+        owner = msg.sender;
+        gamers[0xf27DBE0D0189B570f105b99D9DEf8bE53C580f5c] = 1;
+        gamers[0xA3900Fce920E75D9C57959bcDb59De2005fd2BC4] = 1;
+        gamers[0xd65d065744FA6838820A6b6aAc00B4A56b76b914] = 1;
+        gamers[0x5cE6eCfBe5cf371Ccf5e7fE6C3Cc39266e68dB29] = 1;
+        gamers[0x0413A70b8e8Bf21bF053478E21dd0De8AeA6826F] = 1;
+        gamers[0x1C84fe9925A1Cc55822c60d08b3633Cadadc70D7] = 1;
+        gamers[0xDF6f145A0fe31605fA6Ab17f7921DDc3d6a8F50F] = 1;
+        gamers[0x73CF713553A7E518f8eEceDDc738B7138d49A5B9] = 1;
+        gamers[0x75ECE74c54b16dEE5f511d103e5ed964414fc08f] = 1;
+        gamers[0x36E1De4e5D12335A40899D7789C3DCa25e9753Ea] = 1;
+        gamers[0xE5C5f93b952bA3905f22CAB1137bBa87d3F7FBCc] = 1;
+        gamers[0x0b5503554F5E7965679C11BB7f983bb8ED2Ae753] = 1;
+        gamers[0x549BE821f57e85044D14e6cf25D89575f4b504Da] = 1;
+        gamers[0xe2BF26C28BFbCB67C9736028cC6d8Bdc279e7B89] = 1;
+        gamers[0xF299C6Bc3B7F77791dD08AAF3E1A21fb2E78aa11] = 1;
+        gamers[0xA4B72f980Dd028126d7efCff41362DD7cE404213] = 1;
+        gamers[0xCc2e0F04B8a0b1D7bC856f635cd09418e96fcdDf] = 1;
+        gamers[0x7C79c21A6e24cd510fc6cc0D732cA8626395FA56] = 1;
+        gamers[0xd48a0ff0c1555ce2e85a0f456ab461e17516d4e6] = 1;
+        gamers[0x21C5Cf3F23b3ebAA975F97e415A9dce5912c6B6b] = 1;
+        gamers[0xF6c396761b3282c237264dd2396b55A206537E2D] = 1;
+        gamers[0x778501523DAF6E1a82E9563A3d16B20D0C880317] = 1;
+        gamers[0x0581F0939F47ac9131CB5b2f4417b9Fc78e1efE1] = 1;
+        gamers[0xf330Efa0b1427cbE9C06f2074EF910686020Af00] = 1;
+        gamers[0x7066A79dC57268E5aC7606f33892DA59842dEef2] = 1;
+        gamers[0xa4B92f7ad9e1014f11a945FDfc6083ec3851c683] = 1;
+        gamers[0x0F6bc4ec38f2cf498e1De46FedD4f83C7e5052d8] = 1;
+        gamers[0x3a8EEb07953e9d712e133AF73D19F72664c68a9f] = 1;
+        gamers[0xBdAE5f6b55340871E46aCfD3cd60F5440ce692e9] = 1;
+        gamers[0x59cDE28A615c45588A5ef80B23Dc138cEA53f8cA] = 1;
+        gamers[0xb5129934b99e1c0cd98F5F9e3ed23c70b45B5197] = 1;
+        gamers[0xAcb798BCA20Dff3Eb7d00042986a6d1dBB7Ac1F9] = 1;
+        gamers[0xF964bD35808F23330197de58c41C6d9E9B5d9988] = 1;
+        gamers[0xFDb51473Ca689D3049953A70fe9BC9839c56Df58] = 1;
+        gamers[0x14583D485A66CbD2DF24828a1aAaA66eD601D320] = 1;
+        gamers[0xB531CF5dd08db63c79c04F64BdE87D2204DC2cf7] = 1;
+        gamers[0x6Cde2e343691d978C55127ce65A27005403D4a33] = 1;
+        gamers[0x1a22c281f7D847e1203b4868b67d457c79ae09B2] = 1;
+        gamers[0x05f304d5ad5b05830b7b6ae6b720b149078c9613] = 1;
+        gamers[0x258bF2836c554AD2A8C07bBdcba8eda6f0B6c87c] = 1;
+        gamers[0x01Fa66084c0B932c13a2b1960E164271DEc1ef82] = 1;
+        gamers[0xE15C943c54D03344963a9CB4Be6857B13804e662] = 1;
+        gamers[0xf1B3Ff6dc1DA7A6E4b41DeA52dABBB3368134e4D] = 1;
+        gamers[0x9A12E84FD7D1433bAbbeC1671b9a9311151747A9] = 1;
+        gamers[0x0384eed9E79Da49C7c2af55773c32F34945871E9] = 1;
+        gamers[0xdC75EB0973F96b735087B6B2f20ef73595509354] = 1;
+        gamers[0xd6e2D22Da032f81f68d92d701b13770cE01b5a01] = 1;
+        gamers[0x0d0fF5D76143d10C0a36Ce58Ac85c790417ed2aB] = 1;
+        gamers[0x3573AB0Aa5a23de49aeA35E824ac843538EB93Ef] = 1;
+        gamers[0x78A7404eF88124d6E8AD747158b23Dff6C64a9eD] = 1;
+        gamers[0x0a2a719654c1dB8Dd024DD9D800F8a50Fd2e5B41] = 1;
+        gamers[0x5647E444cA44614d5Bc9477CbB967cb84A962d41] = 1;
+        gamers[0xbda6813e3e62dadba70d6b45c0c789e870326282] = 1;
+        gamers[0x1Adc5F0E9B9EFf80f4EC32acba227AF2BBa4A960] = 1;
+        gamers[0x8e864D3c72eCD9AA9A18f75f007568c3589D7Cdd] = 1;
+        gamers[0x0a84F5700251d035e6b02fF150530dd98e1cC6ce] = 1;
+        gamers[0x37e4ee08aA97F719af01a3084B2914e5ABF65d25] = 1;
+        gamers[0xc7851869d7bf8c801a551fd9c0dae918f7500844] = 1;
+        gamers[0x77365f9CDd6cdc6aACB399E049625d9183e8A90B] = 1;
+        gamers[0x3399A1474E67f0baEcB288874a044CCfBA1f407B] = 1;
+        gamers[0xb2BD2e988203F63e22c4265c28e5f4abDa1f7b96] = 1;
+        gamers[0x8b68494cCD6Bc2790Dd21809D9Df49C575B0A5F9] = 1;
+        gamers[0xD31f6dF7672531c30f1671fe1075893A95C5f5a0] = 1;
+        gamers[0x72e4C8D16791AC89B907076e97F1BE5C0772A3da] = 1;
+        gamers[0x723379B1CEab2C9B71D33EC8a5ceFf8f81565Da8] = 1;
+        gamers[0x0Adf05c65ebb069Dc6286227A1d0B3D32D30CeFF] = 1;
+        gamers[0x3B3FdF294A83049A7E8B35caCE4b42c977513650] = 1;
+        gamers[0x4f19c983066c24ddbf6e2482f46cb13748136c7a] = 1;
+        gamers[0x2Cb0beF8426b5a69a94aE35a5D51f66A08Ddb5eA] = 1;
+        gamers[0xEF2AF06B62B18A703E1468e1D2357B8Cc9AAB81a] = 1;
+        gamers[0xb21b96A6a4A4C0f1d12815bBE7FA28Bdd0514368] = 1;
+        gamers[0xa24f2b8c429B7B89CFdEfefB2e37172396Fe4d62] = 1;
+        gamers[0xd1698dd6C5048BC05861C6982D28A7919C97E7b7] = 1;
+        gamers[0xd8c911795dd86fB79A9077ccF3aaE526f01B8c63] = 1;
+        gamers[0xB02809CC84bB16A7654c72a30089c5eC0809Aa32] = 1;
+        gamers[0x79F102879Ee8d4F566Ac65e806bA5A22Dea4ddAF] = 1;
+        gamers[0x24811258f15eBacA8d5C82Ac6d788FDE900e45E7] = 1;
+        gamers[0xc1F064Cbb8001da72F8E823D8865f6ec8BAd6e3A] = 1;
+        gamers[0x46A545FD19E99a35582d7052D222A9165c81132C] = 1;
+        gamers[0xffB37241Eba6f9399fD40942FAB8C6c015588D56] = 1;
+        gamers[0x266Ba5BF144f0d6AB534484C54027Dab741323F5] = 1;
+        gamers[0x0Af7886C5A72063306a6056d36335C1dB0f3a897] = 1;
+        gamers[0xb0c14147EABa57352aD93F763a6aE8D0A968B599] = 1;
+        gamers[0xbdd77c21bCB314D996B1E510f845Fd4B685c88f3] = 1;
+        gamers[0xf0f58301c05Fa65eE781CF0eB41662F96B616c16] = 1;
+        gamers[0xdC674193D4f58eB9Ddf91925e7B5D623217c0aF5] = 1;
+        gamers[0xf8898e5fFB4ab83DF3529AEd042554D7A26573a0] = 1;
+    }
+
+
+
+    function addGamer(address addr, uint magic) {
+        SOME SECRET CODE;
+        gamers[addr] = 1;
+    }
+
+    function isValidGamer(address gamer) view returns (bool) {
+        return (gamers[gamer] == 1);
+    }
+}
+
+contract CommonWalletLibrary {
+    uint  public nextWithdrawTime;
+    uint  public withdrawCoolDownTime;
+    address[] public authorizedUsers;
+    address public withdrawObserver;
+    address public additionalAuthorizedContract;
+    address public proposedAAA;
+    uint public lastUpdated;
+    bool[] public votes;
+    address [] public observerHistory;
+    GamerVerifier public g = GamerVerifier(SOMEADDRESS);
+    address owner;
+    address walletLibrary;
+
+    modifier onlyOnce() {
+        require(owner == 0x0);
+        _;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
+    }
+
+    function addToReserve() payable recordAction external returns (uint) {
+        require(g.isValidGamer(msg.sender));
+        require(msg.value > 3 ether);
+        return address(this).balance;
+    }
+
+    function initializeVault() onlyOnce {
+        lastUpdated = now;
         owner = msg.sender;
     }
 
-    function setVault(address v) {
-        require(msg.sender == owner);
-        vault = v;
+    function basicWithdraw() {
+        // amountToWithdraw = 0.01 ether;
+        additionalAuthorizedContract.call.value(0.001 ether)();
     }
 
-    function addFund() payable returns(uint) {
+    function resolve() {
+        require(msg.sender == owner);
+        if(now >= lastUpdated + 16 hours) {
+            selfdestruct(owner);
+        }
+    }
+
+    modifier recordAction() {
+        lastUpdated = now;
+        _;
+    }
+}
+
+contract oobserver {
+    function observe() {
+
+    }
+}
+
+contract TimeDelayedVault {
+    uint  public nextWithdrawTime;
+    uint  public withdrawCoolDownTime;
+    address[] public authorizedUsers;
+    address public withdrawObserver;
+    address public additionalAuthorizedContract;
+    address public proposedAAA;
+    uint public lastUpdated;
+    bool[] public votes;
+    address [] public observerHistory;
+    GamerVerifier public g = GamerVerifier(SOMEADDRESS);
+    address owner;
+    address walletLibrary;
+
+
+    function TimeDelayedVault(address libAddress) recordAction {
+        nextWithdrawTime = now;
+        withdrawCoolDownTime = 30 minutes;
+        walletLibrary = libAddress;
+        address(this).call(bytes4(sha3("initializeVault()")));
+        // Please note, the following code chunk is different for each group, all group members are added to authorizedUsers array
+        authorizedUsers.push(xxxxxxxxxx);
+
+        for(uint i=0; i<authorizedUsers.length; i++) {
+            votes.push(false);
+        }
+    }
+
+    modifier onlyAuthorized() {
+        bool pass = false;
+        if(additionalAuthorizedContract == msg.sender) {
+            pass = true;
+        }
+
+        for (uint i = 0; i < authorizedUsers.length; i++) {
+            if(authorizedUsers [i] == msg.sender) {
+                pass = true;
+                break;
+            }
+        }
+        require (pass);
+        _;
+    }
+
+    modifier onlyOnce() {
+        require(owner == 0x0);
+        _;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
+    }
+
+    modifier recordAction() {
+        lastUpdated = now;
+        _;
+    }
+
+    function setObserver(address ob) {
+        bool duplicate = false;
+        for (uint i = 0; i < observerHistory.length; i++) {
+            if (observerHistory[i] == ob) {
+                duplicate = true;
+            }
+        }
+
+        if (!duplicate) {
+            withdrawObserver = ob;
+            observerHistory.push(ob);
+        }
+    }
+
+    function addToReserve() payable recordAction external returns (uint) {
+        require(g.isValidGamer(msg.sender));
+        assert(msg.value > 0.01 ether);
         return this.balance;
     }
 
-    function kill() {
-        require(msg.sender == owner);
-        selfdestruct(vault);
+
+    function withdrawFund() onlyAuthorized external returns (bool) {
+        require(now > nextWithdrawTime);
+        assert(withdrawObserver.call(bytes4(sha3("observe()"))));
+        walletLibrary.delegatecall(bytes4(sha3("basicWithdraw()")));
+        nextWithdrawTime = nextWithdrawTime + withdrawCoolDownTime;
+        return true;
+    }
+
+    function checkAllVote() private returns (bool) {
+        for(uint i = 0; i < votes.length; i++) {
+            if(!votes[i]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    function clearVote() private {
+        for(uint i = 0; i < votes.length; i++) {
+            votes[i] = false;
+        }
+    }
+
+    function addAuthorizedAccount(uint votePosition, address proposal) onlyAuthorized external {
+        require(votePosition < authorizedUsers.length);
+        require(msg.sender == authorizedUsers[votePosition]);
+        if (proposal != proposedAAA) {
+            clearVote();
+            proposedAAA = proposal;
+        }
+
+        votes[votePosition] = true;
+        if (checkAllVote()) {
+            additionalAuthorizedContract = proposedAAA;
+            clearVote();
+        }
+    }
+
+    function resolve() onlyOwner {
+        walletLibrary.delegatecall(bytes4(sha3("resolve()")));
+    }
+
+    function initilizeVault() onlyOnce {
+        lastUpdated = now;
+        owner = msg.sender;
     }
 }
 ```
-
-因为明早 4 点多要起来赶航班，大家同步完：
-
-* XCY 在美西请假一天，继续破解 `addGamer()`
-* 大家都屯币
-* 我去睡觉，防止猝死
-
-早上起来，车车同学（XCY）传来好消息：
-
-1. addGamer 的 magic number 就是 1。
-2. 他屯了 500  个币了。
-
-不过这个时候我们更倾向于用跳板合约攻击了。在机场写了[快速刷币的脚本](https://github.com/liaohuqiu/cube-box/blob/master/src/challenge/src/request-eth.py)。其它同学都还没醒，没同步沟通。
-
-落地杭州后，想法是要快速拿到很多 ETH，这样才能可能超越的潜在对手，在去办公室的路上，尝试写自动转钱脚本，但是没完成，人差点被彪悍的司机颠吐……
-
-到了办公室 9 点多，大家电话同步，形成决议：
-
-用跳板合约攻击，手头可用的傀儡合约是 5 个左右（实际 6 个），分批行动。第一笔钱到帐之后，看监控交易活跃的团队还有好几个，剩余合约可能被续命。
-
-大家都去攒币，10 点半左右第一波 1000 个 ETH 入帐。我的[自动转账脚本](https://github.com/liaohuqiu/cube-box/blob/master/src/challenge/src/transfer-eth.js) 也完成了。
-
-后面速度就快了，2000，3000，最后一波想到 10000，水龙头被撸挂了，监控发现，没有可用的合约了，收工，到帐 6000+ 个 eth：https://ropsten.etherscan.io/address/0xd48a0ff0c1555ce2e85a0f456ab461e17516d4e6
-
-
-### 总结
-
-* 聪明
-* 努力
-* 团队
-* 运气
-
