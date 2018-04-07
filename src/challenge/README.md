@@ -11,3 +11,80 @@
 7. 在阅读代码之后，请多次反复，认真，不停地阅读上述积分规则，认真阅读代码，不要激动，思考得到最高奖励的最佳策略。
 8. 本比赛最大的原则，凡是规则不禁止的，都特么是提倡的！
 9. 比赛截止时间：48小时
+
+
+### 规则解说
+
+1. 重生次数，首次破解时间很重要。
+
+2. 成绩和报名账户的收入和成本相关。
+
+3. 规则不限。
+
+4. 48 小时，北京时间 2018 年 4 月 4 号 15:00 到 6 号 15:00。
+
+### 代码解读
+
+* 30 分钟限制：每 30 分钟才可取钱
+
+* 16 小时限制：`selfdestruct()` 在 `lastUpdated` 16 小时才后可攻击，`addToReserve()` 可更新 `lastUpdated`。
+
+  这使得很多操作在比赛期间只能操作 2 次。
+
+* `GameVerifier` 控制权限，`addGamer()` 可添加新地址，需要知道第二个参数的取值规律。
+
+* `TimeDelayedVault` 和 `CommonWalletLibrary`
+
+    * `withdrawFund()` 非常容易构造 `reentry`，麻烦的是要团队配合投票。
+    *  构造函数中 `initializeVault` 是个笔误，无法调用成功 `initilizeVault()`，部署完后，所有合约都是没有 owner 的。
+    *  owner 可调用 `resolve()`，在 `lastUpdated` 后 16 个小时销毁合约，余额会转到 owner 对应的地址。
+
+### 攻防分析
+
+* 最简单的，`reentry` 除去 gas，收入不多。这个越早越好，简单易行，主要考验团队配合。
+
+* `addGamer()` 可添加**非报名地址**，用于各种攻防操作，防追踪。同时可通过 `addToReserve()` 加钱，增加收益。
+
+* 抢占 owner，然后等时间到，`resolve()` 收钱；但任何人都可调用 `addToReserve()` 阻止。
+
+### 分工
+
+我们是 3 期 C 组。参加的同学有: WYF，BJ，LJW，LYN，XCY，和我。BJ 因为要赶之前作业，过程没参与，LYN 同学是后半段参与的。
+
+* WYF 是队长，不过赛期他东京回国，事情也多，没办法实时在线。他应该是组内比较了解智能合约的同学，大策略都是他出的主意。
+
+* LJW 和 XCY 在线时间多，不过 XCY 同学好像是在美西。
+
+* 我飞机晚点 4 号凌晨到北京，有几个应酬，还要陪女朋友不能整天待电脑前面，6 号早 6 点飞杭州，在线时间不也多。
+
+### 本组攻防过程
+
+##### 抢占 owner
+
+4 号早上起来，写了一会工作代码，下午比赛开始之后，简单看了除 reentry 没想到其它办法（新手视野不广），琢磨一个多小时，组里没什么动静，去参加一个饭局。
+
+4 号晚，WYF 在群里说检查合约的 `initilizeVault()` 调用了没，要抢，我喝酒喝得晕乎乎的，没理解。洗澡的时候，突然警醒。和 WYF 同学电话沟通了一下，检查[所有合约](https://ropsten.etherscan.io/address/0x5138da08c878ec23b82b85a86eca47230f96f62b) 发现有部分合约已经被抢占，`CommonWalletLibrary` 也被抢占。
+
+迅速写了 [代码](https://github.com/liaohuqiu/cube-box/blob/master/src/challenge/src/init.js)，把能抢占的都抢占了，组内简单同步，然后睡觉去了。
+
+早上醒来，WYF 同学说给 `CommonWalletLibrary` 续命了，花了 3 个 eth，这个钱要赚回来。上午要出门陪女朋友看电影，结束大概是抢占 owner 之后的 16 小时，写好了 [检查可 `resolve()` 合约的代码](https://github.com/liaohuqiu/cube-box/blob/master/src/challenge/src/check.js) 和 [调用 `resolve()` 的代码](https://github.com/liaohuqiu/cube-box/blob/master/src/challenge/src/kill.js)，然后出门了。
+
+电影不错。
+
+回来之后，留了一个合约没收割（后面发现还漏了一个），其它控制的合约全销毁了，收获大概 20 个 eth，发现大群里有一些动静。
+
+这时候时间过去一半，时间系数 0.5。
+
+监控发现又有组重生，迅速占领。
+
+##### 攻占 GameVerifier
+
+想要扩大战果，靠 `reentry` 和 `resolve()` 是不行的。要破解 `addGamer()` 大量加强，然后 `reentry`。当时我们 `reentry` 还没实现。晚上大家电话会议，确定分工如下：
+
+* LJW 同学实现 `reentry`，并负责调度大家 `addAuthorizedAccount()`
+
+* XCY 和我复杂攻占 `addGamer()`。
+
+##### 扩大战果，快速致富
+
+到了晚上 12 左右，看 opcode
