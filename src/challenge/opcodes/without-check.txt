@@ -1,0 +1,190 @@
+loc_00000000:
+0x00000000 60 60                      PUSH1 60
+0x00000002 60 40                      PUSH1 40
+0x00000004 52                         MSTORE
+0x00000005 60 04                      PUSH1 04
+0x00000007 36                         CALLDATASIZE
+0x00000008 10                         LT
+0x00000009 61 4c  00                  PUSH2 4c 00
+0x0000000c 57                         JUMPI
+
+loc_0000000d:
+0x0000000d 60 00                      PUSH1 00
+0x0000000f 35                         CALLDATALOAD
+0x00000010 7c 00  00  00  00  +      PUSH29 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01
+0x0000002e 90                         SWAP1
+0x0000002f 04                         DIV
+0x00000030 63 ff  ff  ff  ff          PUSH4 ff ff ff ff
+0x00000035 16                         AND
+0x00000036 80                         DUP1
+0x00000037 63 d0  56  1c  14          PUSH4 d0 56 1c 14
+0x0000003c 14                         EQ
+0x0000003d 61 51  00                  PUSH2 51 00
+0x00000040 57                         JUMPI
+
+loc_00000041:
+0x00000041 80                         DUP1
+0x00000042 63 d8  73  dd  98          PUSH4 d8 73 dd 98
+0x00000047 14                         EQ
+0x00000048 61 9e  00                  PUSH2 9e 00
+0x0000004b 57                         JUMPI
+
+loc_0000004c:
+0x0000004c 5b                         JUMPDEST
+0x0000004d 60 00                      PUSH1 00
+0x0000004f 80                         DUP1
+0x00000050 fd                         REVERT
+
+gamers(address):
+0x00000051 5b                         JUMPDEST
+0x00000052 34                         CALLVALUE
+0x00000053 15                         ISZERO
+0x00000054 61 5c  00                  PUSH2 5c 00
+0x00000057 57                         JUMPI
+
+loc_00000058:
+0x00000058 60 00                      PUSH1 00
+0x0000005a 80                         DUP1
+0x0000005b fd                         REVERT
+
+loc_0000005c:
+0x0000005c 5b                         JUMPDEST
+0x0000005d 61 88  00                  PUSH2 88 00
+0x00000060 60 04                      PUSH1 04
+0x00000062 80                         DUP1
+0x00000063 80                         DUP1
+0x00000064 35                         CALLDATALOAD
+0x00000065 73 ff  ff  ff  ff  +      PUSH20 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0x0000007a 16                         AND
+0x0000007b 90                         SWAP1
+0x0000007c 60 20                      PUSH1 20
+0x0000007e 01                         ADD
+0x0000007f 90                         SWAP1
+0x00000080 91                         SWAP2
+0x00000081 90                         SWAP1
+0x00000082 50                         POP
+0x00000083 50                         POP
+0x00000084 61 e0  00                  PUSH2 e0 00
+0x00000087 56                         JUMP
+
+loc_00000088:
+0x00000088 5b                         JUMPDEST
+0x00000089 60 40                      PUSH1 40
+0x0000008b 51                         MLOAD
+0x0000008c 80                         DUP1
+0x0000008d 82                         DUP3
+0x0000008e 81                         DUP2
+0x0000008f 52                         MSTORE
+0x00000090 60 20                      PUSH1 20
+0x00000092 01                         ADD
+0x00000093 91                         SWAP2
+0x00000094 50                         POP
+0x00000095 50                         POP
+0x00000096 60 40                      PUSH1 40
+0x00000098 51                         MLOAD
+0x00000099 80                         DUP1
+0x0000009a 91                         SWAP2
+0x0000009b 03                         SUB
+0x0000009c 90                         SWAP1
+0x0000009d f3                         RETURN
+
+addGamer(address,uint256):
+0x0000009e 5b                         JUMPDEST
+0x0000009f 34                         CALLVALUE
+0x000000a0 15                         ISZERO
+0x000000a1 61 a9  00                  PUSH2 a9 00
+0x000000a4 57                         JUMPI
+
+// payable is false
+loc_000000a5:
+0x000000a5 60 00                      PUSH1 00
+0x000000a7 80                         DUP1
+0x000000a8 fd                         REVERT
+
+loc_000000a9:
+0x000000a9 5b                         JUMPDEST
+0x000000aa 61 de  00                  PUSH2 de 00
+0x000000ad 60 04                      PUSH1 04
+0x000000af 80                         DUP1
+0x000000b0 80                         DUP1
+0x000000b1 35                         CALLDATALOAD
+0x000000b2 73 ff  ff  ff  ff  +      PUSH20 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0x000000c7 16                         AND
+0x000000c8 90                         SWAP1
+0x000000c9 60 20                      PUSH1 20
+0x000000cb 01                         ADD
+0x000000cc 90                         SWAP1
+0x000000cd 91                         SWAP2
+0x000000ce 90                         SWAP1
+0x000000cf 80                         DUP1
+0x000000d0 35                         CALLDATALOAD
+0x000000d1 90                         SWAP1
+0x000000d2 60 20                      PUSH1 20
+0x000000d4 01                         ADD
+0x000000d5 90                         SWAP1
+0x000000d6 91                         SWAP2
+0x000000d7 90                         SWAP1
+0x000000d8 50                         POP
+0x000000d9 50                         POP
+0x000000da 61 f8  00                  PUSH2 f8 00
+0x000000dd 56                         JUMP
+
+loc_000000de:
+0x000000de 5b                         JUMPDEST
+0x000000df 00                         STOP
+
+loc_000000e0:
+0x000000e0 5b                         JUMPDEST
+0x000000e1 60 00                      PUSH1 00
+0x000000e3 60 20                      PUSH1 20
+0x000000e5 52                         MSTORE
+0x000000e6 80                         DUP1
+0x000000e7 60 00                      PUSH1 00
+0x000000e9 52                         MSTORE
+0x000000ea 60 40                      PUSH1 40
+0x000000ec 60 00                      PUSH1 00
+0x000000ee 20                         SHA3
+0x000000ef 60 00                      PUSH1 00
+0x000000f1 91                         SWAP2
+0x000000f2 50                         POP
+0x000000f3 90                         SWAP1
+0x000000f4 50                         POP
+0x000000f5 54                         SLOAD
+0x000000f6 81                         DUP2
+0x000000f7 56                         JUMP
+
+// assign value and return
+loc_000000f8:
+0x000000f8 5b                         JUMPDEST
+0x000000f9 60 01                      PUSH1 01
+0x000000fb 60 00                      PUSH1 00
+0x000000fd 80                         DUP1
+0x000000fe 84                         DUP5
+0x000000ff 73 ff  ff  ff  ff  +      PUSH20 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0x00000114 16                         AND
+0x00000115 73 ff  ff  ff  ff  +      PUSH20 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0x0000012a 16                         AND
+0x0000012b 81                         DUP2
+0x0000012c 52                         MSTORE
+0x0000012d 60 20                      PUSH1 20
+0x0000012f 01                         ADD
+0x00000130 90                         SWAP1
+0x00000131 81                         DUP2
+0x00000132 52                         MSTORE
+0x00000133 60 20                      PUSH1 20
+0x00000135 01                         ADD
+0x00000136 60 00                      PUSH1 00
+0x00000138 20                         SHA3
+0x00000139 81                         DUP2
+0x0000013a 90                         SWAP1
+0x0000013b 55                         SSTORE
+0x0000013c 50                         POP
+0x0000013d 50                         POP
+0x0000013e 50                         POP
+0x0000013f 56                         JUMP
+0x00000140 00                         STOP
+0x00000141 a1                         LOG1
+0x00000142 65 58  30  72  7a  +      PUSH6 58 30 72 7a 7a 62
+0x00000149 20                         SHA3
+0x0000014a 65 17  54  0a  6d  +      PUSH6 17 54 0a 6d 18 9c
+0x00000151 ac e1  82  7b              PUSHC e1 82 7b

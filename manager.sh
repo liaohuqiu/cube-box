@@ -4,7 +4,7 @@ set -e
 
 prj_dir=$(cd $(dirname $0); pwd -P)
 
-image_version='1.0.2'
+image_version='1.0.3'
 image_name="liaohuqiu/cube-box:$image_version"
 
 env='prod'

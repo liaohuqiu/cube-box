@@ -31,3 +31,5 @@ tmp
 build
 tmp-*
 .env
+.idea
+.node*
