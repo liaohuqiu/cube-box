@@ -85,6 +85,70 @@
 
 * XCY 和我复杂攻占 `addGamer()`。
 
+WYF 和我用 MEW 调用测试 magic num，发现 1 是不行的，但是看 input data 以及 porosity 反编译出来的都是 1，不解，决定看 opcode。
+
 ##### 扩大战果，快速致富
 
-到了晚上 12 左右，看 opcode
+到了晚上 12 点左右，对着黄皮书看 opcode，眼睛都要瞎了，WYF 提出了一个疯狂的想法：
+
+随便构造一个合约，用非报名帐号给这个合约充钱，然后销毁这个合约（跳板合约），把钱转给竞赛的合约（傀儡合约，其它组的和我们自组的），然后销毁傀儡合约。
+
+立刻简单测试，可行。
+
+
+```
+contract Jumper {
+    address vault;
+    address owner;
+
+    function Jumper() payable {
+        owner = msg.sender;
+    }
+
+    function setVault(address v) {
+        require(msg.sender == owner);
+        vault = v;
+    }
+
+    function addFund() payable returns(uint) {
+        return this.balance;
+    }
+
+    function kill() {
+        require(msg.sender == owner);
+        selfdestruct(vault);
+    }
+}
+```
+
+因为明早 4 点多要起来赶航班，大家同步完：
+
+* XCY 在美西请假一天，继续破解 `addGamer()`
+* 大家都屯币
+* 我去睡觉，防止猝死
+
+早上起来，车车同学（XCY）传来好消息：
+
+1. addGamer 的 magic number 就是 1。
+2. 他屯了 500  个币了。
+
+不过这个时候我们更倾向于用跳板合约攻击了。在机场写了[快速刷币的脚本](https://github.com/liaohuqiu/cube-box/blob/master/src/challenge/src/request-eth.py)。其它同学都还没醒，没同步沟通。
+
+落地杭州后，想法是要快速拿到很多 ETH，这样才能可能超越的潜在对手，在去办公室的路上，尝试写自动转钱脚本，但是没完成，人差点被彪悍的司机颠吐……
+
+到了办公室 9 点多，大家电话同步，形成决议：
+
+用跳板合约攻击，手头可用的傀儡合约是 5 个左右（实际 6 个），分批行动。第一笔钱到帐之后，看监控交易活跃的团队还有好几个，剩余合约可能被续命。
+
+大家都去攒币，10 点半左右第一波 1000 个 ETH 入帐。我的[自动转账脚本](https://github.com/liaohuqiu/cube-box/blob/master/src/challenge/src/transfer-eth.js) 也完成了。
+
+后面速度就快了，2000，3000，最后一波想到 10000，水龙头被撸挂了，监控发现，没有可用的合约了，收工，到帐 6000+ 个 eth：https://ropsten.etherscan.io/address/0xd48a0ff0c1555ce2e85a0f456ab461e17516d4e6
+
+
+### 总结
+
+* 聪明
+* 努力
+* 团队
+* 运气
+
