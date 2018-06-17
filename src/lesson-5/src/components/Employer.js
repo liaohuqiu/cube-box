@@ -37,6 +37,7 @@ class Employer extends Component {
     const { mode, owner } = this.state;
 
     if (owner !== account) {
+      console.log("owner is: "+owner+",currAccount is:"+account)
       return <Alert message="你没有权限" type="error" showIcon />;
     }
 
