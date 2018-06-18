@@ -16,7 +16,7 @@ class Common extends Component {
       }
     }
 
-    this.newFund = payroll.NewFund(updateInfo);
+    this.addFund = payroll.AddFund(updateInfo);
     this.getPaid = payroll.GetPaid(updateInfo);
     this.newEmployee = payroll.NewEmployee(updateInfo);
     this.updateEmployee = payroll.UpdateEmployee(updateInfo);
@@ -26,7 +26,7 @@ class Common extends Component {
   }
 
   componentWillUnmount() {
-    this.newFund.stopWatching();
+    this.addFund.stopWatching();
     this.getPaid.stopWatching();
     this.newEmployee.stopWatching();
     this.updateEmployee.stopWatching();
@@ -35,7 +35,7 @@ class Common extends Component {
 
   checkInfo = () => {
     const { payroll, account, web3 } = this.props;
-    payroll.checkInfo.call({
+     payroll.checkInfo.call({
       from: account,
     }).then((result) => {
       this.setState({

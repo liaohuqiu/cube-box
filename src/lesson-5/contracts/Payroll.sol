@@ -18,21 +18,12 @@ contract Payroll is Ownable {
     address[] employeeList;
     mapping(address => Employee) public employees;
 
-    event NewEmployee(
-        address employee
-    );
-    event UpdateEmployee(
-        address employee
-    );
-    event RemoveEmployee(
-        address employee
-    );
-    event NewFund(
-        uint balance
-    );
-    event GetPaid(
-        address employee
-    );
+    event AddFund(uint balance);
+    event GetPaid(uint balance);
+    event NewEmployee(address addr);
+    event UpdateEmployee(address addr);
+    event RemoveEmployee(address addr);
+
 
     modifier employeeExit(address employeeId) {
         var employee = employees[employeeId];
@@ -87,7 +78,7 @@ contract Payroll is Ownable {
     }
     
     function addFund() payable returns (uint) {
-        NewFund(this.balance);
+        AddFund(this.balance);
         return this.balance;
     }
     
@@ -107,13 +98,13 @@ contract Payroll is Ownable {
 
         employee.lastPayday = nextPayday;
         employee.id.transfer(employee.salary);
-        GetPaid(employee.id);
+         GetPaid(this.balance);
     }
 
     function checkInfo() returns (uint balance, uint runway, uint employeeCount) {
         balance = this.balance;
         employeeCount = totalEmployee;
-
+        
         if (totalSalary > 0) {
             runway = calculateRunway();
         }
