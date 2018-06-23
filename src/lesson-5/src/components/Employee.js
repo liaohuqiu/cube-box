@@ -21,12 +21,14 @@ class Employer extends Component {
      }).then((result) => {
        console.log('checkEmployee=>余额balance:'+result[0].toNumber() +',可支付次数runawy：'+result[1].toNumber()+',员工人数：'+result[2].toNumber())
        this.setState({
-        balance : web3.fromWei(result[0].toNumber()),
         runway : result[1].toNumber(),
         employeeCount : result[2].toNumber()
        });
      });
-     web3.eth.getBalance(account, function(error, result){
+     web3.eth.getBalance(account, (error, result) => {
+       this.setState({
+         balance: web3.fromWei(result) + " Ether"
+       })
       console.log("当前账户余额"+web3.fromWei(result));
     });
      payroll.employees.call(account ,{
@@ -65,7 +67,7 @@ class Employer extends Component {
             <Card title="上次支付">{lastPaidDate}</Card>
           </Col>
           <Col span={8}>
-            <Card title="帐号金额">{balance} Ether</Card>
+            <Card title="帐号金额"> {balance}</Card>
           </Col>
         </Row>
 
